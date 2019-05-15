@@ -25,6 +25,10 @@ import Recording from './ui/modules/Recording';
 import RecordOpener from './ui/components/RecordOpener.js';
 import LaunchScreen from './ui/modules/wizard/LaunchScreen.js';
 import BrowserUtils from './ui/components/BrowserUtils';
+// <-- modified
+import *as meld from 'meld';
+import CrackDetectionResultNotifier from './CrackDetectionResultNotifier.js';
+// modified -->
 
 function init() {
 
@@ -61,6 +65,16 @@ function init() {
 	}else if (GLOBALS.browserUtils.isFirefox) {
 		document.querySelector('.input__media__activate').innerHTML = 'To teach your machine, you need to turn on your camera. To do this you need to click this icon <img class="camera-icon" src="assets/ff-camera-icon.png"> to grant access and <a href="#">refresh the page</a>.';
 	}
+
+  // <-- modified
+  meld.before(GLOBALS.outputSection, 'trigger', (id) => {
+    // console.log('[before OutputSection#trigger]');
+    let index = GLOBALS.classNames.indexOf(id);
+    let event = new CustomEvent('classified', {detail: {classIndex: index}});
+    window.dispatchEvent(event);
+  });
+  GLOBALS.notifier = new CrackDetectionResultNotifier();
+  // modified -->
 }
 
 window.addEventListener('load', init);
