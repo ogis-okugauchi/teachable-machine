@@ -1,48 +1,81 @@
-/* eslint-disable max-params */
 class CrackDetectionResultNotifier {
-  constructor(id, method, uri, token) {
-    let apiHost = '127.0.0.1:10443';
-    // let apiHost = 'dev.vantiq.com';
-    this.uri = uri || `https://${apiHost}/api/v1/resources/custom/T_CrackDetectionEvent`;
-    this.token = `Bearer ${token}`;
-    this.method = method || 'POST';
-    this.deviceId = id || v1();
-    this.enable = true;
 
-    rx.fromEvent(window, 'classified').
-      pipe(
-        // rxOps.tap((content) => console.log(content)),
-        rxOps.throttleTime(1000)
-      ).
-      subscribe((classified) => {
-        let msg = JSON.stringify({
-          'deviceId': this.deviceId,
-          'detectionResult': String(classified.detail.classIndex),
-          'createdAt': new Date().toISOString()
+    constructor() {
+        let params = queryString.parse(location.search.replace('?', ''));
+        console.log('query params >>>', params);
+        let host = params.apiHost || '127.0.0.1:10443';
+
+        this.uri = `https://${host}/api/v1/resources/topics//sensorEvent/crackDetectionResult`;
+        this.token = `Bearer ${params.token}`;
+        this.method = 'POST';
+        this.deviceId = params.CD || '999';
+        this.enable = false;
+
+        this.setSwitchCommunicationStatus('input-section');
+
+        rx.fromEvent(window, 'classified').
+            pipe(
+                rxOps.throttleTime(1000),
+                rxOps.map((event) => String(event.detail.classIndex))
+            ).
+            subscribe((classIndex) => {
+                this.postRequest(classIndex).
+                    subscribe((res) => console.log(res));
+            });
+    }
+
+
+    setSwitchCommunicationStatus(elementID) {
+        let clickableElement = document.getElementById(elementID);
+        let viewElement = document.getElementById('machine');
+        const activeClassName = 'communitaion-enabled';
+        const inactiveClassName = 'communitaion-disabled';
+
+        viewElement.classList.add(inactiveClassName);
+        this.setEnable(false);
+
+        clickableElement.addEventListener('click', (event) => {
+            viewElement.classList.toggle(activeClassName);
+            viewElement.classList.toggle(inactiveClassName);
+            this.setEnable(viewElement.classList.contains(activeClassName));
         });
+    }
 
-        let request = new XMLHttpRequest();
-        request.open(this.method, this.uri);
-    
-        request.setRequestHeader('Authorization', this.token);
-        request.setRequestHeader('Content-Type', 'application/json');
-        request.send(msg);
 
-        request.onreadystatechange = function() {
-          if (this.status === 200 && this.readyState === 4) {
-            console.log('responce >>>', JSON.parse(request.responseText));
-          }
-        };
-      });
-  }
+    postRequest(classIndex) {
+        return rx.iif(
+            () => this.enable,
+            rxAjax.ajax({
+                url: this.uri,
+                method: 'POST',
+                headers: {
+                    'Authorization': this.token,
+                    'Content-Type': 'application/json'
+                },
+                body: {
+                    'deviceId': 'CD' + this.deviceId,
+                    'detectionResult': classIndex,
+                    'createdAt': new Date().toISOString()
+                }
+            }).pipe(
+                rxOps.map((res) => res.xhr.response)
+            ),
+            rx.of('Communication is disabled by user on browsing.')
+        );
+    }
 
-  setEnable(flag) {
-    this.enable = flag;
-  }
+
+    setEnable(flag) {
+        this.enable = flag;
+        console.log(flag ? '[INFO] Communication: ON' : '[INFO] Communication: OFF');
+    }
 }
 
-import v1 from 'uuid/v1';
+
 import *as rx from 'rxjs';
+import *as rxAjax from 'rxjs/ajax';
 import *as rxOps from 'rxjs/operators';
+
+import *as queryString from 'querystring';
 
 export default CrackDetectionResultNotifier;
