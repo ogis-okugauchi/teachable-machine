@@ -28,8 +28,8 @@ class CrackDetectionResultNotifier {
     setSwitchCommunicationStatus(elementID) {
         let clickableElement = document.getElementById(elementID);
         let viewElement = document.getElementById('machine');
-        const activeClassName = 'communitaion-enabled';
-        const inactiveClassName = 'communitaion-disabled';
+        const activeClassName = 'communication-enabled';
+        const inactiveClassName = 'communication-disabled';
 
         viewElement.classList.add(inactiveClassName);
         this.setEnable(false);
