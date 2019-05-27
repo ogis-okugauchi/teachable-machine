@@ -1869,9 +1869,9 @@ getpass@^0.1.1:
   dependencies:
     assert-plus "^1.0.0"
 
-"gifler@https://github.com/themadcreator/gifler.git#v0.3.0":
+"gifler@git+https://github.com/themadcreator/gifler.git#v0.3.0":
   version "0.3.0"
-  resolved "https://github.com/themadcreator/gifler.git#89484cb3db174c584a3138e89664f0167a7760c1"
+  resolved "git+https://github.com/themadcreator/gifler.git#89484cb3db174c584a3138e89664f0167a7760c1"
   dependencies:
     bluebird "3.0.2"
     omggif "1.0.x"
